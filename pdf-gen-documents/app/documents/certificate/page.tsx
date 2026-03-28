@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { downloadPDF } from "@/lib/pdf";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Signatory {
   name: string;
@@ -53,10 +58,11 @@ export default function CertificatePage() {
     setForm((f) => ({ ...f, signatories: f.signatories.filter((_, i) => i !== index) }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const filename = `certificate-${Date.now()}.pdf`;
     try {
       const signatories = form.signatories.filter((s) => s.name || s.title);
       await downloadPDF(
@@ -70,7 +76,8 @@ export default function CertificatePage() {
           date: form.date,
           signatories: signatories.length ? signatories : undefined,
         },
-        `certificate-${Date.now()}.pdf`
+        filename,
+        `${form.recipientName} · ${form.courseName}`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -82,97 +89,98 @@ export default function CertificatePage() {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-5">
       {/* Organization Info */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ข้อมูลองค์กร</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">ชื่อองค์กร/สถาบัน</label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ข้อมูลองค์กร</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="organizationName">ชื่อองค์กร/สถาบัน</Label>
+            <Input
+              id="organizationName"
               value={form.organizationName}
               onChange={(e) => setField("organizationName", e.target.value)}
               placeholder="เช่น มหาวิทยาลัยตัวอย่าง"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">เลขที่ใบรับรอง</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="certificateNo">เลขที่ใบรับรอง</Label>
+            <Input
+              id="certificateNo"
               value={form.certificateNo}
               onChange={(e) => setField("certificateNo", e.target.value)}
               placeholder="เช่น CERT-2024-001"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              วันที่ออกใบรับรอง <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="date">
+              วันที่ออกใบรับรอง <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="date"
               type="date"
               required
               value={form.date}
               onChange={(e) => setField("date", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Recipient Info */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ข้อมูลผู้รับใบรับรอง</h2>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อผู้รับ <span className="text-red-500">*</span>
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ข้อมูลผู้รับใบรับรอง</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="recipientName">
+              ชื่อผู้รับ <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="recipientName"
               required
               value={form.recipientName}
               onChange={(e) => setField("recipientName", e.target.value)}
               placeholder="ชื่อ-นามสกุล ผู้รับใบรับรอง"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อหลักสูตร/ความสำเร็จ <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="courseName">
+              ชื่อหลักสูตร/ความสำเร็จ <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="courseName"
               required
               value={form.courseName}
               onChange={(e) => setField("courseName", e.target.value)}
               placeholder="เช่น หลักสูตรการพัฒนาซอฟต์แวร์"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">คำอธิบายเพิ่มเติม</label>
-            <textarea
+          <div className="space-y-1.5">
+            <Label htmlFor="description">คำอธิบายเพิ่มเติม</Label>
+            <Textarea
+              id="description"
               value={form.description}
               onChange={(e) => setField("description", e.target.value)}
               rows={2}
               placeholder="เช่น ได้ผ่านการอบรมและทดสอบจนสำเร็จ..."
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
+              className="resize-none"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Signatories */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-semibold text-gray-900">ผู้ลงนาม</h2>
-          <button
-            type="button"
-            onClick={addSignatory}
-            className="text-xs border border-slate-300 text-slate-700 rounded-md px-3 py-1 hover:bg-slate-50 transition-colors"
-          >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm">ผู้ลงนาม</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={addSignatory}>
             + เพิ่มผู้ลงนาม
-          </button>
-        </div>
-        <div className="space-y-2">
-          <div className="grid grid-cols-11 gap-2 text-xs font-medium text-gray-500 px-1">
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-11 gap-2 text-xs font-medium text-muted-foreground px-1">
             <div className="col-span-5">ชื่อ</div>
             <div className="col-span-5">ตำแหน่ง</div>
             <div className="col-span-1" />
@@ -180,19 +188,17 @@ export default function CertificatePage() {
           {form.signatories.map((sig, i) => (
             <div key={i} className="grid grid-cols-11 gap-2 items-center">
               <div className="col-span-5">
-                <input
+                <Input
                   value={sig.name}
                   onChange={(e) => setSignatory(i, "name", e.target.value)}
                   placeholder="ชื่อ-นามสกุล"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-5">
-                <input
+                <Input
                   value={sig.title}
                   onChange={(e) => setSignatory(i, "title", e.target.value)}
                   placeholder="เช่น ผู้อำนวยการ"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-1 flex justify-center">
@@ -200,7 +206,7 @@ export default function CertificatePage() {
                   <button
                     type="button"
                     onClick={() => removeSignatory(i)}
-                    className="text-gray-400 hover:text-red-500 transition-colors text-base leading-none"
+                    className="text-muted-foreground hover:text-destructive transition-colors text-base leading-none"
                   >
                     ✕
                   </button>
@@ -208,26 +214,22 @@ export default function CertificatePage() {
               </div>
             </div>
           ))}
-        </div>
-        <p className="mt-3 text-xs text-gray-400">
-          หากไม่ระบุผู้ลงนาม ระบบจะใช้ผู้ลงนามค่าเริ่มต้น
-        </p>
-      </section>
+          <p className="text-xs text-muted-foreground pt-1">
+            หากไม่ระบุผู้ลงนาม ระบบจะใช้ผู้ลงนามค่าเริ่มต้น
+          </p>
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 text-white px-6 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
-        </button>
+        </Button>
       </div>
     </form>
   );

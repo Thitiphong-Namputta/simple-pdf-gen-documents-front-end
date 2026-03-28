@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { downloadPDF } from "@/lib/pdf";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Item {
   name: string;
@@ -68,15 +73,17 @@ export default function InvoicePage() {
     setForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== index) }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const filename = `invoice-${form.invoiceNo || Date.now()}.pdf`;
     try {
       await downloadPDF(
         "invoice",
         { ...form, subtotal, taxAmount, total },
-        `invoice-${form.invoiceNo || Date.now()}.pdf`
+        filename,
+        `${form.invoiceNo ? `#${form.invoiceNo} · ` : ""}${form.clientName}`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -88,118 +95,117 @@ export default function InvoicePage() {
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-5">
       {/* Company Info */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ข้อมูลบริษัท</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อบริษัท <span className="text-red-500">*</span>
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ข้อมูลบริษัท</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="companyName">
+              ชื่อบริษัท <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="companyName"
               required
               value={form.companyName}
               onChange={(e) => setField("companyName", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">ที่อยู่</label>
-            <input
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="companyAddress">ที่อยู่</Label>
+            <Input
+              id="companyAddress"
               value={form.companyAddress}
               onChange={(e) => setField("companyAddress", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">โทรศัพท์</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="companyTel">โทรศัพท์</Label>
+            <Input
+              id="companyTel"
               value={form.companyTel}
               onChange={(e) => setField("companyTel", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">อีเมล</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="companyEmail">อีเมล</Label>
+            <Input
+              id="companyEmail"
               type="email"
               value={form.companyEmail}
               onChange={(e) => setField("companyEmail", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Invoice Details */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">รายละเอียดใบแจ้งหนี้</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              เลขที่ใบแจ้งหนี้ <span className="text-red-500">*</span>
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">รายละเอียดใบแจ้งหนี้</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="invoiceNo">
+              เลขที่ใบแจ้งหนี้ <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="invoiceNo"
               required
               value={form.invoiceNo}
               onChange={(e) => setField("invoiceNo", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">วันที่ออกใบแจ้งหนี้</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="invoiceDate">วันที่ออกใบแจ้งหนี้</Label>
+            <Input
+              id="invoiceDate"
               type="date"
               value={form.invoiceDate}
               onChange={(e) => setField("invoiceDate", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อลูกค้า <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="clientName">
+              ชื่อลูกค้า <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="clientName"
               required
               value={form.clientName}
               onChange={(e) => setField("clientName", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">วันครบกำหนด</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="dueDate">วันครบกำหนด</Label>
+            <Input
+              id="dueDate"
               type="date"
               value={form.dueDate}
               onChange={(e) => setField("dueDate", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">ที่อยู่ลูกค้า</label>
-            <input
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="clientAddress">ที่อยู่ลูกค้า</Label>
+            <Input
+              id="clientAddress"
               value={form.clientAddress}
               onChange={(e) => setField("clientAddress", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Items */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-semibold text-gray-900">รายการสินค้า/บริการ</h2>
-          <button
-            type="button"
-            onClick={addItem}
-            className="text-xs border border-slate-300 text-slate-700 rounded-md px-3 py-1 hover:bg-slate-50 transition-colors"
-          >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm">รายการสินค้า/บริการ</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={addItem}>
             + เพิ่มรายการ
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 px-1">
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
             <div className="col-span-6">ชื่อสินค้า/บริการ</div>
             <div className="col-span-2">จำนวน</div>
             <div className="col-span-3">ราคา/หน่วย (฿)</div>
@@ -208,33 +214,30 @@ export default function InvoicePage() {
           {form.items.map((item, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-center">
               <div className="col-span-6">
-                <input
+                <Input
                   required
                   value={item.name}
                   onChange={(e) => setItem(i, "name", e.target.value)}
                   placeholder="ชื่อสินค้า/บริการ"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-2">
-                <input
+                <Input
                   type="number"
                   min="1"
                   required
                   value={item.qty}
                   onChange={(e) => setItem(i, "qty", Number(e.target.value))}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-3">
-                <input
+                <Input
                   type="number"
                   min="0"
                   step="0.01"
                   required
                   value={item.price}
                   onChange={(e) => setItem(i, "price", Number(e.target.value))}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-1 flex justify-center">
@@ -242,7 +245,7 @@ export default function InvoicePage() {
                   <button
                     type="button"
                     onClick={() => removeItem(i)}
-                    className="text-gray-400 hover:text-red-500 transition-colors text-base leading-none"
+                    className="text-muted-foreground hover:text-destructive transition-colors text-base leading-none"
                   >
                     ✕
                   </button>
@@ -250,68 +253,68 @@ export default function InvoicePage() {
               </div>
             </div>
           ))}
-        </div>
 
-        {/* Totals */}
-        <div className="mt-5 pt-4 border-t border-gray-100 space-y-2 max-w-xs ml-auto">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600">ยอดรวม</span>
-            <span className="font-medium">
-              ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600">ภาษี</span>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={form.tax}
-                onChange={(e) => setField("tax", Number(e.target.value))}
-                className="w-14 rounded-md border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-slate-500 text-center"
-              />
-              <span className="text-gray-600">%</span>
+          {/* Totals */}
+          <div className="mt-4 pt-4 border-t space-y-2 max-w-xs ml-auto text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">ยอดรวม</span>
+              <span className="font-medium">
+                ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
             </div>
-            <span className="font-medium">
-              ฿{taxAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span>ภาษี</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={form.tax}
+                  onChange={(e) => setField("tax", Number(e.target.value))}
+                  className="w-14 h-7 text-center text-xs"
+                />
+                <span>%</span>
+              </div>
+              <span className="font-medium">
+                ฿{taxAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex justify-between pt-2 border-t font-semibold">
+              <span>ยอดรวมสุทธิ</span>
+              <span className="text-base">
+                ฿{total.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-            <span className="text-sm font-semibold text-gray-900">ยอดรวมสุทธิ</span>
-            <span className="text-base font-bold text-slate-900">
-              ฿{total.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Note */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">หมายเหตุ</h2>
-        <textarea
-          value={form.note}
-          onChange={(e) => setField("note", e.target.value)}
-          rows={3}
-          placeholder="หมายเหตุเพิ่มเติม..."
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
-        />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">หมายเหตุ</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={form.note}
+            onChange={(e) => setField("note", e.target.value)}
+            rows={3}
+            placeholder="หมายเหตุเพิ่มเติม..."
+            className="resize-none"
+          />
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 text-white px-6 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
-        </button>
+        </Button>
       </div>
     </form>
   );

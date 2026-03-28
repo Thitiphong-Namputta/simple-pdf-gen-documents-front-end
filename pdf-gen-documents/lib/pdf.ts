@@ -1,14 +1,15 @@
 export async function downloadPDF(
   type: string,
   data: object,
-  filename: string
+  filename: string,
+  summary: string
 ): Promise<void> {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/pdf/generate`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, data }),
+      body: JSON.stringify({ type, data, summary }),
     }
   );
 

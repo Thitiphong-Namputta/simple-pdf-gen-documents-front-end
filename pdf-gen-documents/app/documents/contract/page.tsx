@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { downloadPDF } from "@/lib/pdf";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Clause {
   title: string;
@@ -59,10 +64,11 @@ export default function ContractPage() {
     setForm((f) => ({ ...f, clauses: f.clauses.filter((_, i) => i !== index) }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const filename = `contract-${Date.now()}.pdf`;
     try {
       await downloadPDF(
         "contract",
@@ -78,7 +84,8 @@ export default function ContractPage() {
           preamble: form.preamble || undefined,
           clauses: form.clauses.filter((c) => c.title || c.content),
         },
-        `contract-${Date.now()}.pdf`
+        filename,
+        `${form.title} (${form.party1Name} & ${form.party2Name})`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -90,196 +97,193 @@ export default function ContractPage() {
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-5">
       {/* Contract Header */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ข้อมูลสัญญา</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อสัญญา <span className="text-red-500">*</span>
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ข้อมูลสัญญา</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="title">
+              ชื่อสัญญา <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="title"
               required
               value={form.title}
               onChange={(e) => setField("title", e.target.value)}
               placeholder="เช่น สัญญาจ้างพัฒนาซอฟต์แวร์"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              วันที่ทำสัญญา <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="contractDate">
+              วันที่ทำสัญญา <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="contractDate"
               type="date"
               required
               value={form.contractDate}
               onChange={(e) => setField("contractDate", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Parties */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Party 1 */}
-        <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">คู่สัญญาที่ 1</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                ชื่อ <span className="text-red-500">*</span>
-              </label>
-              <input
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">คู่สัญญาที่ 1</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="party1Name">
+                ชื่อ <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="party1Name"
                 required
                 value={form.party1Name}
                 onChange={(e) => setField("party1Name", e.target.value)}
                 placeholder="ชื่อบุคคล/นิติบุคคล"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                บทบาท <span className="text-red-500">*</span>
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="party1Role">
+                บทบาท <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="party1Role"
                 required
                 value={form.party1Role}
                 onChange={(e) => setField("party1Role", e.target.value)}
                 placeholder="เช่น ผู้ว่าจ้าง"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">ที่อยู่</label>
-              <textarea
+            <div className="space-y-1.5">
+              <Label htmlFor="party1Address">ที่อยู่</Label>
+              <Textarea
+                id="party1Address"
                 value={form.party1Address}
                 onChange={(e) => setField("party1Address", e.target.value)}
                 rows={2}
-                placeholder="ที่อยู่..."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
+                className="resize-none"
               />
             </div>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        {/* Party 2 */}
-        <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">คู่สัญญาที่ 2</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                ชื่อ <span className="text-red-500">*</span>
-              </label>
-              <input
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">คู่สัญญาที่ 2</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="party2Name">
+                ชื่อ <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="party2Name"
                 required
                 value={form.party2Name}
                 onChange={(e) => setField("party2Name", e.target.value)}
                 placeholder="ชื่อบุคคล/นิติบุคคล"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                บทบาท <span className="text-red-500">*</span>
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="party2Role">
+                บทบาท <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="party2Role"
                 required
                 value={form.party2Role}
                 onChange={(e) => setField("party2Role", e.target.value)}
                 placeholder="เช่น ผู้รับจ้าง"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">ที่อยู่</label>
-              <textarea
+            <div className="space-y-1.5">
+              <Label htmlFor="party2Address">ที่อยู่</Label>
+              <Textarea
+                id="party2Address"
                 value={form.party2Address}
                 onChange={(e) => setField("party2Address", e.target.value)}
                 rows={2}
-                placeholder="ที่อยู่..."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
+                className="resize-none"
               />
             </div>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Preamble */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">คำนำ / บทนำสัญญา</h2>
-        <textarea
-          value={form.preamble}
-          onChange={(e) => setField("preamble", e.target.value)}
-          rows={3}
-          placeholder="ข้อความเปิดก่อนเข้าสู่ข้อสัญญา (ไม่บังคับ)..."
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
-        />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">คำนำ / บทนำสัญญา</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={form.preamble}
+            onChange={(e) => setField("preamble", e.target.value)}
+            rows={3}
+            placeholder="ข้อความเปิดก่อนเข้าสู่ข้อสัญญา (ไม่บังคับ)..."
+            className="resize-none"
+          />
+        </CardContent>
+      </Card>
 
       {/* Clauses */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-semibold text-gray-900">ข้อสัญญา</h2>
-          <button
-            type="button"
-            onClick={addClause}
-            className="text-xs border border-slate-300 text-slate-700 rounded-md px-3 py-1 hover:bg-slate-50 transition-colors"
-          >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm">ข้อสัญญา</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={addClause}>
             + เพิ่มข้อสัญญา
-          </button>
-        </div>
-        <div className="space-y-4">
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {form.clauses.map((clause, i) => (
-            <div key={i} className="rounded-md border border-gray-200 p-4 relative">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-medium text-gray-500">ข้อที่ {i + 1}</span>
+            <div key={i} className="rounded-md border p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-muted-foreground">ข้อที่ {i + 1}</span>
                 {form.clauses.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeClause(i)}
-                    className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
                   >
                     ลบข้อนี้
                   </button>
                 )}
               </div>
-              <div className="space-y-2">
-                <input
-                  required
-                  value={clause.title}
-                  onChange={(e) => setClause(i, "title", e.target.value)}
-                  placeholder="ชื่อข้อสัญญา เช่น ขอบเขตงาน"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
-                />
-                <textarea
-                  required
-                  value={clause.content}
-                  onChange={(e) => setClause(i, "content", e.target.value)}
-                  rows={3}
-                  placeholder="รายละเอียดของข้อสัญญา..."
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
-                />
-              </div>
+              <Input
+                required
+                value={clause.title}
+                onChange={(e) => setClause(i, "title", e.target.value)}
+                placeholder="ชื่อข้อสัญญา เช่น ขอบเขตงาน"
+              />
+              <Textarea
+                required
+                value={clause.content}
+                onChange={(e) => setClause(i, "content", e.target.value)}
+                rows={3}
+                placeholder="รายละเอียดของข้อสัญญา..."
+                className="resize-none"
+              />
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 text-white px-6 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
-        </button>
+        </Button>
       </div>
     </form>
   );

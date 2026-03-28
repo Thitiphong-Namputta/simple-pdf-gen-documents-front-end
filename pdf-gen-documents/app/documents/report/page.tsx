@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { downloadPDF } from "@/lib/pdf";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface StatCard {
   label: string;
@@ -54,19 +59,17 @@ export default function ReportPage() {
     setForm((f) => ({ ...f, summary: f.summary.filter((_, i) => i !== index) }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const filename = `report-${Date.now()}.pdf`;
     try {
       const tableHeaders = form.tableHeaders
         ? form.tableHeaders.split(",").map((h) => h.trim()).filter(Boolean)
         : [];
       const tableData = form.tableRows
-        ? form.tableRows
-            .split("\n")
-            .filter((r) => r.trim())
-            .map((r) => r.split(",").map((c) => c.trim()))
+        ? form.tableRows.split("\n").filter((r) => r.trim()).map((r) => r.split(",").map((c) => c.trim()))
         : [];
 
       await downloadPDF(
@@ -81,7 +84,8 @@ export default function ReportPage() {
           tableData: tableData.length ? tableData : undefined,
           notes: form.notes || undefined,
         },
-        `report-${Date.now()}.pdf`
+        filename,
+        form.title
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -93,47 +97,45 @@ export default function ReportPage() {
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-5">
       {/* Basic Info */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ข้อมูลรายงาน</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              ชื่อรายงาน <span className="text-red-500">*</span>
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ข้อมูลรายงาน</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="title">
+              ชื่อรายงาน <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="title"
               required
               value={form.title}
               onChange={(e) => setField("title", e.target.value)}
               placeholder="เช่น รายงานยอดขายประจำเดือน"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">ช่วงเวลา</label>
-            <input
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="period">ช่วงเวลา</Label>
+            <Input
+              id="period"
               value={form.period}
               onChange={(e) => setField("period", e.target.value)}
               placeholder="เช่น มกราคม - มีนาคม 2567"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Summary Stats */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-semibold text-gray-900">สรุปสถิติ</h2>
-          <button
-            type="button"
-            onClick={addStat}
-            className="text-xs border border-slate-300 text-slate-700 rounded-md px-3 py-1 hover:bg-slate-50 transition-colors"
-          >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm">สรุปสถิติ</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={addStat}>
             + เพิ่มสถิติ
-          </button>
-        </div>
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 px-1">
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
             <div className="col-span-5">หัวข้อ</div>
             <div className="col-span-4">ค่า</div>
             <div className="col-span-2">หน่วย</div>
@@ -142,27 +144,24 @@ export default function ReportPage() {
           {form.summary.map((stat, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-center">
               <div className="col-span-5">
-                <input
+                <Input
                   value={stat.label}
                   onChange={(e) => setStat(i, "label", e.target.value)}
                   placeholder="เช่น ยอดขายรวม"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-4">
-                <input
+                <Input
                   value={stat.value}
                   onChange={(e) => setStat(i, "value", e.target.value)}
                   placeholder="เช่น 1,250,000"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-2">
-                <input
+                <Input
                   value={stat.unit}
                   onChange={(e) => setStat(i, "unit", e.target.value)}
                   placeholder="บาท"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
                 />
               </div>
               <div className="col-span-1 flex justify-center">
@@ -170,7 +169,7 @@ export default function ReportPage() {
                   <button
                     type="button"
                     onClick={() => removeStat(i)}
-                    className="text-gray-400 hover:text-red-500 transition-colors text-base leading-none"
+                    className="text-muted-foreground hover:text-destructive transition-colors text-base leading-none"
                   >
                     ✕
                   </button>
@@ -178,78 +177,83 @@ export default function ReportPage() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Table */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">ตารางข้อมูล</h2>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">ชื่อตาราง</label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">ตารางข้อมูล</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="tableTitle">ชื่อตาราง</Label>
+            <Input
+              id="tableTitle"
               value={form.tableTitle}
               onChange={(e) => setField("tableTitle", e.target.value)}
               placeholder="เช่น ตารางยอดขายแยกตามสาขา"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+          <div className="space-y-1.5">
+            <Label htmlFor="tableHeaders">
               หัวคอลัมน์{" "}
-              <span className="text-gray-400 font-normal">(คั่นด้วยเครื่องหมายจุลภาค)</span>
-            </label>
-            <input
+              <span className="text-muted-foreground font-normal text-xs">
+                (คั่นด้วยเครื่องหมายจุลภาค)
+              </span>
+            </Label>
+            <Input
+              id="tableHeaders"
               value={form.tableHeaders}
               onChange={(e) => setField("tableHeaders", e.target.value)}
               placeholder="เช่น สาขา,ยอดขาย,เปอร์เซ็นต์"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+          <div className="space-y-1.5">
+            <Label htmlFor="tableRows">
               ข้อมูลแถว{" "}
-              <span className="text-gray-400 font-normal">
+              <span className="text-muted-foreground font-normal text-xs">
                 (แต่ละแถวคั่นด้วย Enter, แต่ละคอลัมน์คั่นด้วยจุลภาค)
               </span>
-            </label>
-            <textarea
+            </Label>
+            <Textarea
+              id="tableRows"
               value={form.tableRows}
               onChange={(e) => setField("tableRows", e.target.value)}
               rows={4}
               placeholder={"สาขากรุงเทพ,500000,40%\nสาขาเชียงใหม่,300000,24%"}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none font-mono"
+              className="resize-none font-mono text-xs"
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Notes */}
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">หมายเหตุ</h2>
-        <textarea
-          value={form.notes}
-          onChange={(e) => setField("notes", e.target.value)}
-          rows={3}
-          placeholder="หมายเหตุหรือข้อสังเกตเพิ่มเติม..."
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none"
-        />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">หมายเหตุ</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={form.notes}
+            onChange={(e) => setField("notes", e.target.value)}
+            rows={3}
+            placeholder="หมายเหตุหรือข้อสังเกตเพิ่มเติม..."
+            className="resize-none"
+          />
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 text-white px-6 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
-        </button>
+        </Button>
       </div>
     </form>
   );
