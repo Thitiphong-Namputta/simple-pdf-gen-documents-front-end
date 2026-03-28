@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { downloadPDF } from "@/lib/pdf";
+import { downloadExport, type ExportFormat } from "@/lib/export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface StatCard {
   label: string;
@@ -36,6 +43,7 @@ const defaultForm: FormData = {
 
 export default function ReportPage() {
   const [form, setForm] = useState<FormData>(defaultForm);
+  const [format, setFormat] = useState<ExportFormat>("pdf");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +71,7 @@ export default function ReportPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const filename = `report-${Date.now()}.pdf`;
+    const filename = `report-${Date.now()}`;
     try {
       const tableHeaders = form.tableHeaders
         ? form.tableHeaders.split(",").map((h) => h.trim()).filter(Boolean)
@@ -72,8 +80,9 @@ export default function ReportPage() {
         ? form.tableRows.split("\n").filter((r) => r.trim()).map((r) => r.split(",").map((c) => c.trim()))
         : [];
 
-      await downloadPDF(
+      await downloadExport(
         "report",
+        format,
         {
           title: form.title,
           generatedAt: new Date().toLocaleString("th-TH"),
@@ -250,9 +259,19 @@ export default function ReportPage() {
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <Select value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pdf">PDF</SelectItem>
+            <SelectItem value="docx">Word (.docx)</SelectItem>
+            <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
+          </SelectContent>
+        </Select>
         <Button type="submit" disabled={loading}>
-          {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
+          {loading ? "กำลังสร้าง..." : "สร้างเอกสาร"}
         </Button>
       </div>
     </form>

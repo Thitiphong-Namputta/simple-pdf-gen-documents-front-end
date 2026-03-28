@@ -10,6 +10,7 @@ import {
   HomeIcon,
   ReceiptIcon,
   ScrollTextIcon,
+  UploadIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,6 +34,7 @@ const documentNav = [
 
 const dataNav = [
   { label: "ประวัติเอกสาร", href: "/documents/history", icon: HistoryIcon },
+  { label: "นำเข้าข้อมูล", href: "/documents/import", icon: UploadIcon },
 ];
 
 export default function AppSidebar() {

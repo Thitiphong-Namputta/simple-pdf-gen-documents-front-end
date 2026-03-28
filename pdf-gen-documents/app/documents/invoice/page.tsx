@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { downloadPDF } from "@/lib/pdf";
+import { downloadExport, type ExportFormat } from "@/lib/export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Item {
   name: string;
@@ -46,6 +53,7 @@ const defaultForm: FormData = {
 
 export default function InvoicePage() {
   const [form, setForm] = useState<FormData>(defaultForm);
+  const [format, setFormat] = useState<ExportFormat>("pdf");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,10 +85,11 @@ export default function InvoicePage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const filename = `invoice-${form.invoiceNo || Date.now()}.pdf`;
+    const filename = `invoice-${form.invoiceNo || Date.now()}`;
     try {
-      await downloadPDF(
+      await downloadExport(
         "invoice",
+        format,
         { ...form, subtotal, taxAmount, total },
         filename,
         `${form.invoiceNo ? `#${form.invoiceNo} · ` : ""}${form.clientName}`
@@ -311,9 +320,19 @@ export default function InvoicePage() {
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <Select value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pdf">PDF</SelectItem>
+            <SelectItem value="docx">Word (.docx)</SelectItem>
+            <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
+          </SelectContent>
+        </Select>
         <Button type="submit" disabled={loading}>
-          {loading ? "กำลังสร้าง PDF..." : "สร้าง PDF"}
+          {loading ? "กำลังสร้าง..." : "สร้างเอกสาร"}
         </Button>
       </div>
     </form>
